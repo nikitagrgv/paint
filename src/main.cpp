@@ -37,7 +37,7 @@ private:
 
 glView::glView()
 {
-    connect(&mpTimer, SIGNAL(timeout()), this, SLOT(repaint()));
+    connect(&mpTimer, &QTimer::timeout, this, QOverload<>::of(&glView::repaint));
     mpTimer.start(33);
 }
 

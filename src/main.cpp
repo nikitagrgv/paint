@@ -62,10 +62,10 @@ void glView::resizeGL(int w, int h)
 //------------------------------------------------------------------------------
 void glView::paintGL()
 {
-    glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glColor4f(0.5f, 0.2f, 0.2f, 1.0f);
+    glColor4f(1.0f, 0.2f, 0.2f, 1.0f);
     glBegin(GL_LINE_LOOP);
     glVertex2i(mPosition.x() * mScaleFactorX, mPosition.y() * mScaleFactorY);
     glVertex2i(mPosition.x() * mScaleFactorX + 100, mPosition.y() * mScaleFactorY + 100);

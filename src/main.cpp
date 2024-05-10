@@ -9,177 +9,111 @@
 #include <QLabel>
 #include <QGridLayout>
 #include <QtOpenGLWidgets/QOpenGLWidget>
+#include <QMainWindow>
 
-class Helper {
-public:
-    Helper();
+#include <QMouseEvent>
+#include <QTimer>
 
-public:
-    void paint(QPainter *painter, QPaintEvent *event, int elapsed);
+
+struct glView : QOpenGLWidget
+{
+    glView();
+
+    void initializeGL() override;
+
+    void resizeGL(int w, int h) override;
+
+    void paintGL() override;
+
+    void mousePressEvent(QMouseEvent *) override;
 
 private:
-    QBrush background;
-    QBrush circleBrush;
-    QFont textFont;
-    QPen circlePen;
-    QPen textPen;
+    float mScaleFactorX;
+    float mScaleFactorY;
+
+    QPoint mPosition;
+    QTimer mpTimer;
 };
 
-Helper::Helper() {
-    QLinearGradient gradient(QPointF(50, -20), QPointF(80, 20));
-    gradient.setColorAt(0.0, Qt::white);
-    gradient.setColorAt(1.0, QColor(0xa6, 0xce, 0x39));
-
-    background = QBrush(QColor(64, 32, 64));
-    circleBrush = QBrush(gradient);
-    circlePen = QPen(Qt::black);
-    circlePen.setWidth(1);
-    textPen = QPen(Qt::white);
-    textFont.setPixelSize(50);
+//------------------------------------------------------------------------------
+glView::glView()
+{
+    connect(&mpTimer, SIGNAL(timeout()), this, SLOT(repaint()));
+    mpTimer.start(33);
 }
 
-void Helper::paint(QPainter *painter, QPaintEvent *event, int elapsed) {
-    painter->fillRect(event->rect(), background);
-    painter->translate(100, 100);
-
-    painter->save();
-    painter->setBrush(circleBrush);
-    painter->setPen(circlePen);
-    painter->rotate(elapsed * 0.030);
-
-    qreal r = elapsed / 1000.0;
-    int n = 30;
-    for (int i = 0; i < n; ++i) {
-        painter->rotate(30);
-        qreal factor = (i + r) / n;
-        qreal radius = 0 + 120.0 * factor;
-        qreal circleRadius = 1 + factor * 20;
-        painter->drawEllipse(QRectF(radius, -circleRadius,
-                                    circleRadius * 2, circleRadius * 2));
-    }
-    painter->restore();
-
-    painter->setPen(textPen);
-    painter->setFont(textFont);
-    painter->drawText(QRect(-50, -50, 100, 100), Qt::AlignCenter, QStringLiteral("Qt"));
+//------------------------------------------------------------------------------
+void glView::initializeGL()
+{
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, 800, 600, 0, 0, 1);
 }
 
-class Helper;
+//------------------------------------------------------------------------------
+void glView::resizeGL(int w, int h)
+{
+    glViewport(0, 0, w, h);
 
-class Widget : public QWidget {
+    mScaleFactorX = 800 / (float)w;
+    mScaleFactorY = 600 / (float)h;
+}
+
+//------------------------------------------------------------------------------
+void glView::paintGL()
+{
+    glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glColor4f(0.5f, 0.2f, 0.2f, 1.0f);
+    glBegin(GL_LINE_LOOP);
+    glVertex2i(mPosition.x() * mScaleFactorX, mPosition.y() * mScaleFactorY);
+    glVertex2i(mPosition.x() * mScaleFactorX + 100, mPosition.y() * mScaleFactorY + 100);
+    glVertex2i(mPosition.x() * mScaleFactorX, mPosition.y() * mScaleFactorY + 100);
+    glEnd();
+}
+
+//------------------------------------------------------------------------------
+void glView::mousePressEvent(QMouseEvent *apEvent)
+{
+    mPosition = apEvent->pos();
+}
+
+class MainWindow : public QMainWindow
+{
     Q_OBJECT
 
 public:
-    Widget(Helper *helper, QWidget *parent);
+    explicit MainWindow(QWidget *parent = 0);
 
-public slots:
-    void animate();
-
-protected:
-    void paintEvent(QPaintEvent *event) override;
+    ~MainWindow();
 
 private:
-    Helper *helper;
-    int elapsed;
+    glView mView;
 };
 
-Widget::Widget(Helper *helper, QWidget *parent)
-    : QWidget(parent), helper(helper) {
-    elapsed = 0;
-    setFixedSize(200, 200);
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+{
+    mView.show();
 }
 
-void Widget::animate() {
-    elapsed = (elapsed + qobject_cast<QTimer *>(sender())->interval()) % 1000;
-    update();
+MainWindow::~MainWindow()
+{
 }
 
-void Widget::paintEvent(QPaintEvent *event) {
-    QPainter painter;
-    painter.begin(this);
-    painter.setRenderHint(QPainter::Antialiasing);
-    helper->paint(&painter, event, elapsed);
-    painter.end();
-}
-
-class Helper;
-
-class GLWidget : public QOpenGLWidget {
-    Q_OBJECT
-
-public:
-    GLWidget(Helper *helper, QWidget *parent);
-
-public slots:
-    void animate();
-
-protected:
-    void paintEvent(QPaintEvent *event) override;
-
-private:
-    Helper *helper;
-    int elapsed;
-};
-
-GLWidget::GLWidget(Helper *helper, QWidget *parent)
-    : QOpenGLWidget(parent), helper(helper) {
-    elapsed = 0;
-    setFixedSize(200, 200);
-    setAutoFillBackground(false);
-}
-
-void GLWidget::animate() {
-    elapsed = (elapsed + qobject_cast<QTimer *>(sender())->interval()) % 1000;
-    update();
-}
-
-void GLWidget::paintEvent(QPaintEvent *event) {
-    QPainter painter;
-    painter.begin(this);
-    painter.setRenderHint(QPainter::Antialiasing);
-    helper->paint(&painter, event, elapsed);
-    painter.end();
-}
-
-class Window : public QWidget {
-    Q_OBJECT
-
-public:
-    Window();
-
-private:
-    Helper helper;
-};
-
-Window::Window() {
-    setWindowTitle(tr("2D Painting on Native and OpenGL Widgets"));
-
-    Widget *native = new Widget(&helper, this);
-    GLWidget *openGL = new GLWidget(&helper, this);
-    QLabel *nativeLabel = new QLabel(tr("Native"));
-    nativeLabel->setAlignment(Qt::AlignHCenter);
-    QLabel *openGLLabel = new QLabel(tr("OpenGL"));
-    openGLLabel->setAlignment(Qt::AlignHCenter);
-
-    QGridLayout *layout = new QGridLayout;
-    layout->addWidget(native, 0, 0);
-    layout->addWidget(openGL, 0, 1);
-    layout->addWidget(nativeLabel, 1, 0);
-    layout->addWidget(openGLLabel, 1, 1);
-    setLayout(layout);
-
-    QTimer *timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, native, &Widget::animate);
-    connect(timer, &QTimer::timeout, openGL, &GLWidget::animate);
-    timer->start(50);
-}
-
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     QApplication a(argc, argv);
-    Window button;
-    button.resize(200, 100);
-    button.show();
-    return QApplication::exec();
+
+    glView win;
+    win.show();
+    //win.showFullScreen();
+
+    //MainWindow w;
+    //w.show();
+
+    return a.exec();
 }
 
 #include "main.moc"

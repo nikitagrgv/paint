@@ -16,6 +16,8 @@ find_package(Qt6 COMPONENTS
         OpenGLWidgets
         REQUIRED)
 
+find_package(OpenGL REQUIRED)
+
 add_executable(paint main.cpp)
 target_link_libraries(paint
         Qt::Core
@@ -23,6 +25,7 @@ target_link_libraries(paint
         Qt::Widgets
         Qt::OpenGL
         Qt::OpenGLWidgets
+        OpenGL::GL
 )
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)

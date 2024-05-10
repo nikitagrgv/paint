@@ -42,17 +42,31 @@ struct glView : QOpenGLWidget
 
     void paintGL() override
     {
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(0.4f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glColor4f(1.0f, 0.2f, 0.2f, 1.0f);
-        // glBegin(GL_TRIANGLES);
-        // glVertex2i(mPosition.x() * mScaleFactorX, mPosition.y() * mScaleFactorY);
-        // glVertex2i(mPosition.x() * mScaleFactorX + 100, mPosition.y() * mScaleFactorY + 100);
-        // glVertex2i(mPosition.x() * mScaleFactorX, mPosition.y() * mScaleFactorY + 100);
-        // glEnd();
 
-        renderSceneGL2();
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, backgroundimage);
 
+        int a = mPosition.x() * mScaleFactorX;
+        int b = mPosition.y() * mScaleFactorY;
+
+        glBegin(GL_QUADS);
+        glTexCoord2f(0, 0);
+        glVertex2i(a, b);
+
+        glTexCoord2f(1, 0);
+        glVertex2i(a + 300, b);
+
+        glTexCoord2f(1, 1);
+        glVertex2i(a + 300, b + 300);
+
+        glTexCoord2f(0, 1);
+        glVertex2i(a, b + 300);
+
+        glEnd();
+
+        glDisable(GL_TEXTURE_2D);
     }
 
     void mousePressEvent(QMouseEvent *apEvent) override
@@ -89,43 +103,6 @@ struct glView : QOpenGLWidget
         glDisable(GL_TEXTURE_2D);
 
         return tex;
-    }
-
-    void renderSceneGL2()
-    {
-        glClearColor(0.4f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, backgroundimage);
-
-        const auto s = 100;
-
-        // glBegin(GL_QUADS);
-        // glTexCoord2f(0, 0);
-        // glVertex3f(-s, -s, -s);
-        // glTexCoord2f(1, 0);
-        // glVertex3f(s, -s, -s);
-        // glTexCoord2f(1, 1);
-        // glVertex3f(s, s, -s);
-        // glTexCoord2f(0, 1);
-        // glVertex3f(-s, s, -s);
-        // glEnd();
-
-
-        glBegin(GL_TRIANGLES);
-        int a = mPosition.x() * mScaleFactorX;
-        int b = mPosition.y() * mScaleFactorY;
-        glTexCoord2f(0, 0);
-        glVertex2i(a, b);
-        glTexCoord2f(1, 0);
-        glVertex2i(a + 300, b);
-        glTexCoord2f(1, 1);
-        glVertex2i(a + 300, b + 300);
-        glEnd();
-
-
-        glDisable(GL_TEXTURE_2D);
     }
 
 private:

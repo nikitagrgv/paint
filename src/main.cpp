@@ -13,6 +13,7 @@
 
 #include <QMouseEvent>
 #include <QTimer>
+#include <iostream>
 
 
 struct glView : QOpenGLWidget
@@ -48,6 +49,9 @@ struct glView : QOpenGLWidget
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, backgroundimage);
 
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
         int a = mPosition.x() * mScaleFactorX;
         int b = mPosition.y() * mScaleFactorY;
 
@@ -71,13 +75,25 @@ struct glView : QOpenGLWidget
 
     void mousePressEvent(QMouseEvent *apEvent) override
     {
-        mPosition = apEvent->pos();
+        if (apEvent->button() == Qt::LeftButton)
+        {
+            mPosition = apEvent->pos();
+        }
+        else if (apEvent->button() == Qt::RightButton)
+        {
+            glBindTexture(GL_TEXTURE_2D, backgroundimage);
+            QImage im(image_path);
+            QImage tex = im.convertToFormat(QImage::Format_RGBA8888);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width(), tex.height(), 0, GL_RGBA,
+                GL_UNSIGNED_BYTE, tex.bits());
+            // mPosition = apEvent->pos();
+        }
     }
 
 
     void init()
     {
-        loadTexture2("C:\\Users\\nekita\\CLionProjects\\paint\\data\\spam.png", backgroundimage);
+        loadTexture2(image_path, backgroundimage);
     }
 
     QImage loadTexture2(const char *filename, GLuint &textureID)
@@ -113,6 +129,7 @@ private:
 
     QPoint mPosition;
     QTimer mpTimer;
+    const char *image_path = "C:\\Users\\nekita\\CLionProjects\\paint\\data\\spam.png";
 };
 
 int main(int argc, char *argv[])

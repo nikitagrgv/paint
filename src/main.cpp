@@ -117,9 +117,9 @@ struct glView : QOpenGLWidget
         glTexCoord2f(0, 0);
         glVertex2i(mPosition.x() * mScaleFactorX, mPosition.y() * mScaleFactorY);
         glTexCoord2f(1, 0);
-        glVertex2i(mPosition.x() * mScaleFactorX + 100, mPosition.y() * mScaleFactorY + 100);
+        glVertex2i(mPosition.x() * mScaleFactorX + 300, mPosition.y() * mScaleFactorY + 300);
         glTexCoord2f(1, 1);
-        glVertex2i(mPosition.x() * mScaleFactorX, mPosition.y() * mScaleFactorY + 100);
+        glVertex2i(mPosition.x() * mScaleFactorX, mPosition.y() * mScaleFactorY + 300);
         glEnd();
 
 

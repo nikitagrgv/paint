@@ -62,7 +62,7 @@ void glView::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glColor4f(1.0f, 0.2f, 0.2f, 1.0f);
-    glBegin(GL_LINE_LOOP);
+    glBegin(GL_TRIANGLES);
     glVertex2i(mPosition.x() * mScaleFactorX, mPosition.y() * mScaleFactorY);
     glVertex2i(mPosition.x() * mScaleFactorX + 100, mPosition.y() * mScaleFactorY + 100);
     glVertex2i(mPosition.x() * mScaleFactorX, mPosition.y() * mScaleFactorY + 100);

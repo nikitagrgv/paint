@@ -35,14 +35,12 @@ private:
     QTimer mpTimer;
 };
 
-//------------------------------------------------------------------------------
 glView::glView()
 {
     connect(&mpTimer, SIGNAL(timeout()), this, SLOT(repaint()));
     mpTimer.start(33);
 }
 
-//------------------------------------------------------------------------------
 void glView::initializeGL()
 {
     glMatrixMode(GL_PROJECTION);
@@ -50,7 +48,6 @@ void glView::initializeGL()
     glOrtho(0, 800, 600, 0, 0, 1);
 }
 
-//------------------------------------------------------------------------------
 void glView::resizeGL(int w, int h)
 {
     glViewport(0, 0, w, h);
@@ -59,7 +56,6 @@ void glView::resizeGL(int w, int h)
     mScaleFactorY = 600 / (float)h;
 }
 
-//------------------------------------------------------------------------------
 void glView::paintGL()
 {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -73,27 +69,9 @@ void glView::paintGL()
     glEnd();
 }
 
-//------------------------------------------------------------------------------
 void glView::mousePressEvent(QMouseEvent *apEvent)
 {
     mPosition = apEvent->pos();
-}
-
-class MainWindow : public QMainWindow
-{
-    Q_OBJECT
-
-public:
-    explicit MainWindow(QWidget *parent = 0);
-
-private:
-    glView mView;
-};
-
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-{
-    mView.show();
 }
 
 int main(int argc, char *argv[])
@@ -103,9 +81,6 @@ int main(int argc, char *argv[])
     glView win;
     win.show();
     // win.showFullScreen();
-
-    // MainWindow w;
-    //w.show();
 
     return a.exec();
 }

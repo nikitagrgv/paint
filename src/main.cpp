@@ -86,8 +86,6 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
 
-    ~MainWindow();
-
 private:
     glView mView;
 };
@@ -98,19 +96,15 @@ MainWindow::MainWindow(QWidget *parent)
     mView.show();
 }
 
-MainWindow::~MainWindow()
-{
-}
-
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
     glView win;
     win.show();
-    //win.showFullScreen();
+    // win.showFullScreen();
 
-    //MainWindow w;
+    // MainWindow w;
     //w.show();
 
     return a.exec();

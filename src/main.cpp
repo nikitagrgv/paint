@@ -11,6 +11,7 @@
 #include <QtOpenGLWidgets/QOpenGLWidget>
 #include <QMainWindow>
 #include <QSlider>
+#include <QFormLayout>
 
 #include <QMouseEvent>
 #include <QTimer>
@@ -154,20 +155,26 @@ public:
     {
         QWidget *central_widget = new QWidget(this);
         auto layout = new QVBoxLayout(central_widget);
-        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setContentsMargins(0, 0, 0, 0); {
+            auto form_widget = new QWidget(this);
+            auto form_layout = new QFormLayout(form_widget);
+            layout->addWidget(form_widget);
 
-        scale_slider_ = new QSlider(Qt::Horizontal, this);
-        scale_slider_->setMinimum(1);
-        scale_slider_->setMaximum(100);
-        scale_slider_->setValue(10);
-        layout->addWidget(scale_slider_);
+            scale_slider_ = new QSlider(Qt::Horizontal, this);
+            scale_slider_->setMinimum(1);
+            scale_slider_->setMaximum(100);
+            scale_slider_->setValue(10);
+            form_layout->addRow(new QLabel("Scale:"), scale_slider_);
 
-        connect(scale_slider_, &QSlider::valueChanged, [this](int value) {
-            view_->setScale(value / 10.0);
-        });
+            connect(scale_slider_, &QSlider::valueChanged, [this](int value) {
+                view_->setScale(value / 10.0);
+            });
+        }
 
         view_ = new glView(this);
         layout->addWidget(view_);
+        layout->setStretch(0, 0);
+        layout->setStretch(1, 1);
 
 
         setCentralWidget(central_widget);

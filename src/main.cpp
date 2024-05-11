@@ -19,8 +19,11 @@
 #include <iostream>
 
 
-struct glView : QOpenGLWidget
+class glView : public QOpenGLWidget
 {
+    Q_OBJECT
+
+public:
     glView(QWidget *parent)
         : QOpenGLWidget(parent)
     {
@@ -149,6 +152,9 @@ struct glView : QOpenGLWidget
     {
         image_scale_ = scale;
     }
+
+signals:
+    void scaleChanged(float scale);
 
 private:
     QSize size_{};

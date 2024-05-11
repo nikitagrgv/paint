@@ -122,13 +122,13 @@ struct glView : QOpenGLWidget
     }
 
 private:
-    float mScaleFactorX;
-    float mScaleFactorY;
+    float mScaleFactorX{1.0f};
+    float mScaleFactorY{1.0f};
 
-    GLuint backgroundimage;
+    GLuint backgroundimage{};
 
-    QPoint mPosition;
-    QTimer mpTimer;
+    QPoint mPosition{};
+    QTimer mpTimer{};
     const char *image_path = "C:\\Users\\nekita\\CLionProjects\\paint\\data\\spam.png";
 };
 

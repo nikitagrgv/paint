@@ -149,6 +149,10 @@ public:
         auto layout = new QVBoxLayout(central_widget);
         layout->setContentsMargins(0, 0, 0, 0);
 
+        scale_slider_ = new QSlider(Qt::Horizontal, this);
+        layout->addWidget(scale_slider_);
+
+
 
         view_ = new glView(this);
         layout->addWidget(view_);

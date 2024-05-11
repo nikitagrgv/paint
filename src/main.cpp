@@ -27,18 +27,17 @@ struct glView : QOpenGLWidget
     void initializeGL() override
     {
         glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(0, 800, 600, 0, 0, 1);
 
         init();
     }
 
     void resizeGL(int w, int h) override
     {
+        size_.setWidth(w);
+        size_.setHeight(h);
+        glLoadIdentity();
+        glOrtho(0, w, h, 0, 0, 1);
         glViewport(0, 0, w, h);
-
-        mScaleFactorX = 800 / (float)w;
-        mScaleFactorY = 600 / (float)h;
     }
 
     void paintGL() override
@@ -52,21 +51,24 @@ struct glView : QOpenGLWidget
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-        int a = mPosition.x() * mScaleFactorX;
-        int b = mPosition.y() * mScaleFactorY;
+        QPointF point = (mPosition);
+        float a = point.x();
+        float b = point.y();
+        float w = image_size.width();
+        float h = image_size.height();
 
         glBegin(GL_QUADS);
         glTexCoord2f(0, 0);
-        glVertex2i(a, b);
+        glVertex2f(a, b);
 
         glTexCoord2f(1, 0);
-        glVertex2i(a + 300, b);
+        glVertex2f(a + w, b);
 
         glTexCoord2f(1, 1);
-        glVertex2i(a + 300, b + 300);
+        glVertex2f(a + w, b + h);
 
         glTexCoord2f(0, 1);
-        glVertex2i(a, b + 300);
+        glVertex2f(a, b + h);
 
         glEnd();
 
@@ -84,6 +86,8 @@ struct glView : QOpenGLWidget
             glBindTexture(GL_TEXTURE_2D, backgroundimage);
             QImage im(image_path);
             QImage tex = im.convertToFormat(QImage::Format_RGBA8888);
+            image_size.setWidth(tex.width());
+            image_size.setHeight(tex.height());
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width(), tex.height(), 0, GL_RGBA,
                 GL_UNSIGNED_BYTE, tex.bits());
             // mPosition = apEvent->pos();
@@ -109,6 +113,8 @@ struct glView : QOpenGLWidget
         QImage im(filename);
         // QImage tex = QOpenGLWidget::convertToGLFormat(im);
         QImage tex = im.convertToFormat(QImage::Format_RGBA8888);
+        image_size.setWidth(tex.width());
+        image_size.setHeight(tex.height());
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width(), tex.height(), 0, GL_RGBA,
             GL_UNSIGNED_BYTE, tex.bits());
@@ -122,8 +128,8 @@ struct glView : QOpenGLWidget
     }
 
 private:
-    float mScaleFactorX{1.0f};
-    float mScaleFactorY{1.0f};
+    QSize size_{};
+    QSize image_size{};
 
     GLuint backgroundimage{};
 

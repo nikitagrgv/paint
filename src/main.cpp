@@ -56,8 +56,8 @@ struct glView : QOpenGLWidget
         QPointF point = (mPosition);
         float a = point.x();
         float b = point.y();
-        float w = image_size.width();
-        float h = image_size.height();
+        float w = image_size.width() * image_scale_;
+        float h = image_size.height() * image_scale_;
 
         glBegin(GL_QUADS);
         glTexCoord2f(0, 0);
@@ -129,9 +129,16 @@ struct glView : QOpenGLWidget
         return tex;
     }
 
+    void setScale(float scale)
+    {
+        image_scale_ = scale;
+    }
+
 private:
     QSize size_{};
     QSize image_size{};
+
+    float image_scale_{1};
 
     GLuint backgroundimage{};
 
@@ -150,9 +157,14 @@ public:
         layout->setContentsMargins(0, 0, 0, 0);
 
         scale_slider_ = new QSlider(Qt::Horizontal, this);
+        scale_slider_->setMinimum(1);
+        scale_slider_->setMaximum(100);
+        scale_slider_->setValue(10);
         layout->addWidget(scale_slider_);
 
-
+        connect(scale_slider_, &QSlider::valueChanged, [this](int value) {
+            view_->setScale(value / 10.0);
+        });
 
         view_ = new glView(this);
         layout->addWidget(view_);

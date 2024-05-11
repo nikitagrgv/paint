@@ -18,7 +18,8 @@
 
 struct glView : QOpenGLWidget
 {
-    glView()
+    glView(QWidget *parent)
+        : QOpenGLWidget(parent)
     {
         connect(&mpTimer, &QTimer::timeout, this, QOverload<>::of(&glView::repaint));
         mpTimer.start(33);
@@ -138,13 +139,27 @@ private:
     const char *image_path = "C:\\Users\\nekita\\CLionProjects\\paint\\data\\spam.png";
 };
 
+class MainWindow : public QMainWindow
+{
+public:
+    MainWindow()
+    {
+        view_ = new glView(this);
+        setCentralWidget(view_);
+    }
+
+private:
+    glView *view_;
+};
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    glView win;
+    MainWindow win;
+    win.resize(640, 480);
     win.show();
-    // win.showFullScreen();
+    // win.sho\wFullScreen();
 
     return a.exec();
 }

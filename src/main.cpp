@@ -96,8 +96,22 @@ struct glView : QOpenGLWidget
                 GL_UNSIGNED_BYTE, tex.bits());
             // mPosition = apEvent->pos();
         }
+        else if (apEvent->button() == Qt::MiddleButton)
+        {
+            last_middle_mouse_pos_ = apEvent->pos();
+        }
     }
 
+    void mouseMoveEvent(QMouseEvent *event) override
+    {
+        if (event->buttons() & Qt::MiddleButton == 0)
+        {
+            return;
+        }
+        const QPointF delta = event->pos() - last_middle_mouse_pos_;
+        last_middle_mouse_pos_ = event->pos();
+        mPosition = mPosition + delta;
+    }
 
     void init()
     {
@@ -140,11 +154,13 @@ private:
     QSize size_{};
     QSize image_size{};
 
+    QPointF last_middle_mouse_pos_;
+
     float image_scale_{1};
 
     GLuint backgroundimage{};
 
-    QPoint mPosition{};
+    QPointF mPosition{};
     QTimer mpTimer{};
     const char *image_path = "C:\\Users\\nekita\\CLionProjects\\paint\\data\\spam.png";
 };
@@ -202,8 +218,8 @@ public:
     }
 
 private:
-    QDoubleSpinBox* scale_spinbox_;
-    QSlider* scale_slider_;
+    QDoubleSpinBox *scale_spinbox_;
+    QSlider *scale_slider_;
     glView *view_;
 };
 

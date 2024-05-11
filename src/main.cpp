@@ -107,7 +107,9 @@ public:
 
     void mouseMoveEvent(QMouseEvent *event) override
     {
-        if (event->buttons() & Qt::MiddleButton == 0)
+        std::cout << " buttons = " << event->buttons() << std::endl;
+        std::cout << " fff = " << (event->buttons() & Qt::MiddleButton) << std::endl;
+        if ((event->buttons() & Qt::MiddleButton) == 0)
         {
             return;
         }

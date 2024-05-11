@@ -11,6 +11,7 @@
 #include <QtOpenGLWidgets/QOpenGLWidget>
 #include <QMainWindow>
 #include <QSlider>
+#include <QDoubleSpinBox>
 #include <QFormLayout>
 
 #include <QMouseEvent>
@@ -158,17 +159,37 @@ public:
         layout->setContentsMargins(0, 0, 0, 0); {
             auto form_widget = new QWidget(this);
             auto form_layout = new QFormLayout(form_widget);
-            layout->addWidget(form_widget);
+            layout->addWidget(form_widget); {
+                auto scale_widgets = new QWidget(this);
+                auto scale_layout = new QHBoxLayout(scale_widgets);
 
-            scale_slider_ = new QSlider(Qt::Horizontal, this);
-            scale_slider_->setMinimum(1);
-            scale_slider_->setMaximum(100);
-            scale_slider_->setValue(10);
-            form_layout->addRow(new QLabel("Scale:"), scale_slider_);
+                scale_spinbox_ = new QDoubleSpinBox(this);
+                scale_layout->addWidget(scale_spinbox_);
+                scale_spinbox_->setMinimum(0.1);
+                scale_spinbox_->setMaximum(10.0);
+                scale_spinbox_->setValue(1.0);
 
-            connect(scale_slider_, &QSlider::valueChanged, [this](int value) {
-                view_->setScale(value / 10.0);
-            });
+                connect(scale_spinbox_, &QDoubleSpinBox::valueChanged,
+                    [this](double value) {
+                        QSignalBlocker blocker(scale_slider_);
+                        scale_slider_->setValue(value * 10);
+                        view_->setScale(value);
+                    });
+
+                scale_slider_ = new QSlider(Qt::Horizontal, this);
+                scale_layout->addWidget(scale_slider_);
+                scale_slider_->setMinimum(1);
+                scale_slider_->setMaximum(100);
+                scale_slider_->setValue(10);
+
+                connect(scale_slider_, &QSlider::valueChanged, [this](int value) {
+                    QSignalBlocker blocker(scale_spinbox_);
+                    scale_spinbox_->setValue(value / 10.0);
+                    view_->setScale(value / 10.0);
+                });
+
+                form_layout->addRow(new QLabel("Scale:"), scale_widgets);
+            }
         }
 
         view_ = new glView(this);
@@ -181,7 +202,8 @@ public:
     }
 
 private:
-    QSlider *scale_slider_;
+    QDoubleSpinBox* scale_spinbox_;
+    QSlider* scale_slider_;
     glView *view_;
 };
 

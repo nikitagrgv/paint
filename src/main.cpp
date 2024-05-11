@@ -10,6 +10,7 @@
 #include <QGridLayout>
 #include <QtOpenGLWidgets/QOpenGLWidget>
 #include <QMainWindow>
+#include <QSlider>
 
 #include <QMouseEvent>
 #include <QTimer>
@@ -144,11 +145,20 @@ class MainWindow : public QMainWindow
 public:
     MainWindow()
     {
+        QWidget *central_widget = new QWidget(this);
+        auto layout = new QVBoxLayout(central_widget);
+        layout->setContentsMargins(0, 0, 0, 0);
+
+
         view_ = new glView(this);
-        setCentralWidget(view_);
+        layout->addWidget(view_);
+
+
+        setCentralWidget(central_widget);
     }
 
 private:
+    QSlider *scale_slider_;
     glView *view_;
 };
 

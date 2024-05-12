@@ -360,29 +360,6 @@ public:
         QWidget *central_widget = new QWidget(this);
         auto layout = new QVBoxLayout(central_widget);
         layout->setContentsMargins(0, 0, 0, 0);
-        {
-            auto form_widget = new QWidget(this);
-            auto form_layout = new QFormLayout(form_widget);
-            layout->addWidget(form_widget);
-            {
-                auto scale_widgets = new QWidget(this);
-                auto scale_layout = new QHBoxLayout(scale_widgets);
-
-                scale_spinbox_ = new QDoubleSpinBox(this);
-                scale_layout->addWidget(scale_spinbox_);
-                scale_spinbox_->setMinimum(0.1);
-                scale_spinbox_->setMaximum(10.0);
-                scale_spinbox_->setValue(1.0);
-
-                scale_slider_ = new QSlider(Qt::Horizontal, this);
-                scale_layout->addWidget(scale_slider_);
-                scale_slider_->setMinimum(1);
-                scale_slider_->setMaximum(100);
-                scale_slider_->setValue(10);
-
-                form_layout->addRow(new QLabel("Scale:"), scale_widgets);
-            }
-        }
 
         view_ = new glView(this);
         layout->addWidget(view_);
@@ -390,6 +367,7 @@ public:
         {
             auto info_widgets = new QWidget(this);
             auto info_layout = new QHBoxLayout(info_widgets);
+            info_layout->setContentsMargins(5, 0, 5, 2);
             layout->addWidget(info_widgets);
 
             auto pos_label = new QLabel("Mouse: ", this);
@@ -403,12 +381,26 @@ public:
 
             info_layout->addSpacerItem(
                 new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+
+            ///////////////
+            auto scale_widgets = new QWidget(this);
+            auto scale_layout = new QHBoxLayout(scale_widgets);
+            scale_layout->setContentsMargins(0, 0, 0, 0);
+
+            auto scale_label = new QLabel("Scale: ", this);
+            scale_layout->addWidget(scale_label);
+
+            scale_spinbox_ = new QDoubleSpinBox(this);
+            scale_layout->addWidget(scale_spinbox_);
+            scale_spinbox_->setMinimum(0.1);
+            scale_spinbox_->setMaximum(10.0);
+            scale_spinbox_->setValue(1.0);
+
+            info_layout->addWidget(scale_widgets);
         }
 
-
-        layout->setStretch(0, 0);
-        layout->setStretch(1, 1);
-        layout->setStretch(2, 0);
+        layout->setStretch(0, 1);
+        layout->setStretch(1, 0);
 
         setCentralWidget(central_widget);
 
@@ -421,19 +413,7 @@ public:
                 return;
             }
             block_scale_change_ = true;
-            scale_slider_->setValue(value * 10);
             view_->setScale(value);
-            block_scale_change_ = false;
-        });
-
-        connect(scale_slider_, &QSlider::valueChanged, [this](int value) {
-            if (block_scale_change_)
-            {
-                return;
-            }
-            block_scale_change_ = true;
-            scale_spinbox_->setValue(value / 10.0);
-            view_->setScale(value / 10.0);
             block_scale_change_ = false;
         });
 
@@ -444,7 +424,6 @@ public:
             }
             block_scale_change_ = true;
             scale_spinbox_->setValue(scale);
-            scale_slider_->setValue(scale * 10);
             block_scale_change_ = false;
         });
 
@@ -522,7 +501,6 @@ private:
 private:
     bool block_scale_change_{false};
     QDoubleSpinBox *scale_spinbox_;
-    QSlider *scale_slider_;
     glView *view_;
 
     QLabel *pos_x_label_;

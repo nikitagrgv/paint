@@ -133,6 +133,7 @@ public:
     {
         image_ = std::move(image);
         load_image_to_gl();
+        repaint();
     }
 
     void mouseMoveEvent(QMouseEvent *event) override

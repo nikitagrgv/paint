@@ -18,6 +18,12 @@
 #include <QTimer>
 #include <iostream>
 
+#include <QUndoStack>
+
+struct Globals
+{
+    QUndoStack *undo_stack = nullptr;
+} globals;
 
 class glView : public QOpenGLWidget
 {
@@ -259,6 +265,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow()
     {
+        globals.undo_stack = new QUndoStack();
+
         QWidget *central_widget = new QWidget(this);
         auto layout = new QVBoxLayout(central_widget);
         layout->setContentsMargins(0, 0, 0, 0); {
@@ -328,6 +336,11 @@ public:
             scale_slider_->setValue(scale * 10);
             block_scale_change_ = false;
         });
+    }
+
+    ~MainWindow() override
+    {
+        delete globals.undo_stack;
     }
 
 private:

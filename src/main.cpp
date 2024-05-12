@@ -242,10 +242,13 @@ public:
 
         const float multiplier = dir > 0 ? MULTIPLIER : DEMULTIPLIER;
 
+        const float prev_scale = image_scale_;
         image_scale_ *= multiplier;
+        image_scale_ = std::clamp(image_scale_, MIN_SCALE, MAX_SCALE);
+        const float real_multiplier = image_scale_ / prev_scale;
 
         const QPointF a = position - base_point_;
-        const QPointF b = a * multiplier;
+        const QPointF b = a * real_multiplier;
         const QPointF delta = a - b;
         base_point_ = base_point_ + delta;
 
@@ -301,7 +304,7 @@ public:
         return image_;
     }
 
-    void setScale(float scale) { image_scale_ = scale; }
+    void setScale(float scale) { image_scale_ = std::clamp(scale, MIN_SCALE, MAX_SCALE); }
 
     QPoint toImagePos(const QPointF screen_pos) const
     {
@@ -327,6 +330,9 @@ private:
     }
 
 private:
+    constexpr static float MIN_SCALE = 0.05f;
+    constexpr static float MAX_SCALE = 100.f;
+
     QSize size_{};
     QSize image_size_{};
 
@@ -395,8 +401,8 @@ public:
             scale_spinbox_ = new QDoubleSpinBox(this);
             scale_spinbox_->setFixedWidth(70);
             scale_layout->addWidget(scale_spinbox_);
-            scale_spinbox_->setMinimum(0.1);
-            scale_spinbox_->setMaximum(10.0);
+            scale_spinbox_->setMinimum(0.01);
+            scale_spinbox_->setMaximum(100.0);
             scale_spinbox_->setValue(1.0);
 
             info_layout->addWidget(scale_widgets);

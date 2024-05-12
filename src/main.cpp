@@ -292,6 +292,8 @@ public:
 
         setCentralWidget(central_widget);
 
+        init_menu();
+
         ////////////
         connect(scale_spinbox_, &QDoubleSpinBox::valueChanged,
             [this](double value) {
@@ -335,23 +337,23 @@ private:
         {
             QMenu *file_menu = menuBar()->addMenu(tr("&File"));
 
-            auto *new_action = new QAction("New", this);
+            auto *new_action = new QAction("New", nullptr);
             file_menu->addAction(new_action);
 
-            auto *open_action = new QAction("Open", this);
+            auto *open_action = new QAction("Open", nullptr);
             file_menu->addAction(open_action);
 
-            auto save_action = new QAction("Save", this);
+            auto save_action = new QAction("Save", nullptr);
             file_menu->addAction(save_action);
         }
         // edit
         {
             QMenu *edit_menu = menuBar()->addMenu(tr("&Edit"));
 
-            auto undo_action = new QAction("Undo", this);
+            auto undo_action = new QAction("Undo", nullptr);
             edit_menu->addAction(undo_action);
 
-            auto redo_action = new QAction("Redo", this);
+            auto redo_action = new QAction("Redo", nullptr);
             edit_menu->addAction(redo_action);
         }
     }

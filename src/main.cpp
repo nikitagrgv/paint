@@ -88,6 +88,10 @@ public:
         {
             last_middle_mouse_pos_ = apEvent->pos();
         }
+        else if (apEvent->button() == Qt::LeftButton)
+        {
+            last_draw_image_pos_ = toImagePos(apEvent->pos());
+        }
     }
 
     void mouseMoveEvent(QMouseEvent *event) override
@@ -100,13 +104,14 @@ public:
         }
         else if (event->buttons() & Qt::LeftButton)
         {
-            image_.setPixel(toImagePos(event->pos()), QColor(255, 255, 255, 255).rgba());
+            const QPoint image_pos = toImagePos(event->pos());
+            image_.setPixel(image_pos, QColor(255, 255, 255, 255).rgba());
             image_size.setWidth(image_.width());
             image_size.setHeight(image_.height());
             glBindTexture(GL_TEXTURE_2D, backgroundimage);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_.width(), image_.height(), 0, GL_RGBA,
                 GL_UNSIGNED_BYTE, image_.bits());
-            // mPosition = apEvent->pos();
+            last_draw_image_pos_ = image_pos;
         }
     }
 
@@ -186,6 +191,8 @@ private:
     float image_scale_{1};
 
     GLuint backgroundimage{};
+
+    QPointF last_draw_image_pos_{};
 
     QPointF base_point_{};
     QTimer mpTimer{};

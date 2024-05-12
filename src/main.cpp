@@ -84,11 +84,17 @@ public:
 
     void mousePressEvent(QMouseEvent *apEvent) override
     {
+        const auto toImagePos = [this](const QPointF screen_pos) {
+            QPointF point_f = (screen_pos - base_point_) / image_scale_;
+            return QPoint((point_f.x()), (point_f.y()));
+        };
+
         if (apEvent->button() == Qt::RightButton)
         {
             glBindTexture(GL_TEXTURE_2D, backgroundimage);
             QImage im(image_path);
             QImage tex = im.convertToFormat(QImage::Format_RGBA8888);
+            tex.setPixel(toImagePos(apEvent->pos()), QColor(255, 255, 255, 255).rgba());
             image_size.setWidth(tex.width());
             image_size.setHeight(tex.height());
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width(), tex.height(), 0, GL_RGBA,

@@ -84,7 +84,7 @@ public:
 
     void mousePressEvent(QMouseEvent *apEvent) override
     {
-        else if (apEvent->button() == Qt::RightButton)
+        if (apEvent->button() == Qt::RightButton)
         {
             glBindTexture(GL_TEXTURE_2D, backgroundimage);
             QImage im(image_path);

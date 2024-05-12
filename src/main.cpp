@@ -84,10 +84,6 @@ public:
 
     void mousePressEvent(QMouseEvent *apEvent) override
     {
-        if (apEvent->button() == Qt::LeftButton)
-        {
-            base_point_ = apEvent->pos();
-        }
         else if (apEvent->button() == Qt::RightButton)
         {
             glBindTexture(GL_TEXTURE_2D, backgroundimage);
@@ -116,6 +112,19 @@ public:
         const QPointF delta = event->pos() - last_middle_mouse_pos_;
         last_middle_mouse_pos_ = event->pos();
         base_point_ = base_point_ + delta;
+    }
+
+    void wheelEvent(QWheelEvent *event) override
+    {
+        if (event->angleDelta().y() > 0)
+        {
+            image_scale_ *= 1.1f;
+        }
+        else
+        {
+            image_scale_ *= 1.0f / 1.1f;
+        }
+        emit scaleChanged(image_scale_);
     }
 
     void init()
@@ -236,7 +245,7 @@ public:
         });
 
         connect(view_, &glView::scaleChanged, [this](float scale) {
-            if (!block_scale_change_)
+            if (block_scale_change_)
             {
                 return;
             }

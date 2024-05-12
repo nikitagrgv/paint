@@ -268,7 +268,6 @@ public:
         return QPoint((point_f.x()), (point_f.y()));
     }
 
-
 signals:
     void scaleChanged(float scale);
 
@@ -298,6 +297,7 @@ public:
     MainWindow()
     {
         globals.undo_stack = new QUndoStack();
+        qApp->installEventFilter(this);
 
         QWidget *central_widget = new QWidget(this);
         auto layout = new QVBoxLayout(central_widget);
@@ -374,6 +374,28 @@ public:
     ~MainWindow() override { delete globals.undo_stack; }
 
 private:
+    bool eventFilter(QObject *watched, QEvent *event) override
+    {
+        if (event->type() == QEvent::KeyRelease)
+        {
+            QKeyEvent *key_event = static_cast<QKeyEvent *>(event);
+            if (key_event->modifiers() == Qt::ControlModifier)
+            {
+                if (key_event->key() == Qt::Key_Z)
+                {
+                    globals.undo_stack->undo();
+                    return true;
+                }
+                if (key_event->key() == Qt::Key_Y)
+                {
+                    globals.undo_stack->redo();
+                    return true;
+                }
+            }
+        }
+        return QMainWindow::eventFilter(watched, event);
+    }
+
     void init_menu()
     {
         // file

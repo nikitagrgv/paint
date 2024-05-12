@@ -335,23 +335,23 @@ private:
         {
             QMenu *file_menu = menuBar()->addMenu(tr("&File"));
 
-            QAction *new_action = new QAction("New");
+            auto *new_action = new QAction("New", this);
             file_menu->addAction(new_action);
 
-            QAction *open_action = new QAction("Open");
+            auto *open_action = new QAction("Open", this);
             file_menu->addAction(open_action);
 
-            QAction *save_action = new QAction("Save");
+            auto save_action = new QAction("Save", this);
             file_menu->addAction(save_action);
         }
         // edit
         {
             QMenu *edit_menu = menuBar()->addMenu(tr("&Edit"));
 
-            QAction *undo_action = new QAction("Undo");
+            auto undo_action = new QAction("Undo", this);
             edit_menu->addAction(undo_action);
 
-            QAction *redo_action = new QAction("Redo");
+            auto redo_action = new QAction("Redo", this);
             edit_menu->addAction(redo_action);
         }
     }

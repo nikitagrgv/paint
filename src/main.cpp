@@ -33,16 +33,18 @@ public:
     glView(QWidget *parent)
         : QOpenGLWidget(parent)
     {
+        image_ = QImage(200, 200, QImage::Format_RGBA8888);
+        image_.fill(Qt::white);
+
         connect(&mpTimer, &QTimer::timeout, this, QOverload<>::of(&glView::repaint));
         mpTimer.start(33);
     }
 
     void initializeGL() override
     {
+        gl_intialized_ = true;
         glMatrixMode(GL_PROJECTION);
-        QImage im(image_path);
-        image_ = im.convertToFormat(QImage::Format_RGBA8888);
-        loadTexture2();
+        create_gl_image();
     }
 
     void resizeGL(int w, int h) override
@@ -65,8 +67,8 @@ public:
         QPointF point = (base_point_);
         float a = point.x();
         float b = point.y();
-        float w = image_size.width() * image_scale_;
-        float h = image_size.height() * image_scale_;
+        float w = image_size_.width() * image_scale_;
+        float h = image_size_.height() * image_scale_;
 
         glBegin(GL_QUADS);
         glTexCoord2f(0, 0);
@@ -130,8 +132,15 @@ public:
     void setImage(QImage image)
     {
         image_ = std::move(image);
-        load_image_to_gl();
-        repaint();
+        if (image_.format() != QImage::Format_RGBA8888)
+        {
+            image_ = image_.convertToFormat(QImage::Format_RGBA8888);
+        }
+        if (gl_intialized_)
+        {
+            load_image_to_gl();
+            repaint();
+        }
     }
 
     void mouseMoveEvent(QMouseEvent *event) override
@@ -151,6 +160,8 @@ public:
 
     void load_image_to_gl()
     {
+        image_size_.setWidth(image_.width());
+        image_size_.setHeight(image_.height());
         glBindTexture(GL_TEXTURE_2D, image_gl_);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_.width(), image_.height(), 0, GL_RGBA,
             GL_UNSIGNED_BYTE, image_.bits());
@@ -159,8 +170,6 @@ public:
     void draw_point(const QPoint &image_pos, const QColor &color)
     {
         image_.setPixel(image_pos, color.rgba());
-        image_size.setWidth(image_.width());
-        image_size.setHeight(image_.height());
         load_image_to_gl();
     }
 
@@ -254,7 +263,7 @@ public:
         }
     }
 
-    QImage loadTexture2()
+    QImage create_gl_image()
     {
         glEnable(GL_TEXTURE_2D); // Enable texturing
 
@@ -264,8 +273,8 @@ public:
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 
-        image_size.setWidth(image_.width());
-        image_size.setHeight(image_.height());
+        image_size_.setWidth(image_.width());
+        image_size_.setHeight(image_.height());
 
         load_image_to_gl();
 
@@ -290,7 +299,7 @@ signals:
 
 private:
     QSize size_{};
-    QSize image_size{};
+    QSize image_size_{};
 
     QPointF last_middle_mouse_pos_;
 
@@ -302,10 +311,11 @@ private:
 
     QPointF base_point_{};
     QTimer mpTimer{};
-    const char *image_path = "C:\\Users\\nekita\\CLionProjects\\paint\\data\\spam.png";
     QImage image_;
 
     QImage prev_image_;
+
+    bool gl_intialized_{false};
 };
 
 class MainWindow : public QMainWindow
@@ -348,7 +358,6 @@ public:
         layout->setStretch(0, 0);
         layout->setStretch(1, 1);
 
-
         setCentralWidget(central_widget);
 
         init_menu();
@@ -387,6 +396,14 @@ public:
             block_scale_change_ = false;
         });
     }
+
+    void init()
+    {
+        const char *image_path = "C:\\Users\\nekita\\CLionProjects\\paint\\data\\spam.png";
+        setImage(QImage(image_path));
+    }
+
+    void setImage(QImage image) { view_->setImage(std::move(image)); }
 
     ~MainWindow() override { delete globals.undo_stack; }
 
@@ -454,6 +471,8 @@ int main(int argc, char *argv[])
     MainWindow win;
     win.resize(1024, 628);
     win.show();
+
+    win.init();
     // win.sho\wFullScreen();
 
     return a.exec();

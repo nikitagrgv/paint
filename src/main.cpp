@@ -437,6 +437,10 @@ private:
             QMenu *file_menu = menuBar()->addMenu(tr("&File"));
 
             auto *new_action = new QAction("New", nullptr);
+            connect(new_action, &QAction::triggered, [this] {
+                QImage image(200, 200, QImage::Format_RGBA8888);
+                setImage(std::move(image));
+            });
             file_menu->addAction(new_action);
 
             auto *open_action = new QAction("Open", nullptr);

@@ -40,8 +40,9 @@ public:
     void initializeGL() override
     {
         glMatrixMode(GL_PROJECTION);
-
-        init();
+        QImage im(image_path);
+        image_ = im.convertToFormat(QImage::Format_RGBA8888);
+        loadTexture2();
     }
 
     void resizeGL(int w, int h) override
@@ -59,10 +60,7 @@ public:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, backgroundimage);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, image_gl_);
 
         QPointF point = (base_point_);
         float a = point.x();
@@ -153,7 +151,7 @@ public:
 
     void load_image_to_gl()
     {
-        glBindTexture(GL_TEXTURE_2D, backgroundimage);
+        glBindTexture(GL_TEXTURE_2D, image_gl_);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_.width(), image_.height(), 0, GL_RGBA,
             GL_UNSIGNED_BYTE, image_.bits());
     }
@@ -256,21 +254,16 @@ public:
         }
     }
 
-    void init() { loadTexture2(image_path, backgroundimage); }
-
-    QImage loadTexture2(const char *filename, GLuint &textureID)
+    QImage loadTexture2()
     {
         glEnable(GL_TEXTURE_2D); // Enable texturing
 
-        glGenTextures(1, &textureID);            // Obtain an id for the texture
-        glBindTexture(GL_TEXTURE_2D, textureID); // Set as the current texture
+        glGenTextures(1, &image_gl_);            // Obtain an id for the texture
+        glBindTexture(GL_TEXTURE_2D, image_gl_); // Set as the current texture
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 
-        QImage im(filename);
-        // QImage tex = QOpenGLWidget::convertToGLFormat(im);
-        image_ = im.convertToFormat(QImage::Format_RGBA8888);
         image_size.setWidth(image_.width());
         image_size.setHeight(image_.height());
 
@@ -303,7 +296,7 @@ private:
 
     float image_scale_{1};
 
-    GLuint backgroundimage{};
+    GLuint image_gl_{};
 
     QPoint last_line_pos_{};
 

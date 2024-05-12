@@ -100,14 +100,12 @@ public:
         }
         else if (event->buttons() & Qt::LeftButton)
         {
-            QImage im(image_path);
-            QImage tex = im.convertToFormat(QImage::Format_RGBA8888);
-            tex.setPixel(toImagePos(event->pos()), QColor(255, 255, 255, 255).rgba());
-            image_size.setWidth(tex.width());
-            image_size.setHeight(tex.height());
+            image_.setPixel(toImagePos(event->pos()), QColor(255, 255, 255, 255).rgba());
+            image_size.setWidth(image_.width());
+            image_size.setHeight(image_.height());
             glBindTexture(GL_TEXTURE_2D, backgroundimage);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width(), tex.height(), 0, GL_RGBA,
-                GL_UNSIGNED_BYTE, tex.bits());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_.width(), image_.height(), 0, GL_RGBA,
+                GL_UNSIGNED_BYTE, image_.bits());
             // mPosition = apEvent->pos();
         }
     }
@@ -149,19 +147,19 @@ public:
 
         QImage im(filename);
         // QImage tex = QOpenGLWidget::convertToGLFormat(im);
-        QImage tex = im.convertToFormat(QImage::Format_RGBA8888);
-        image_size.setWidth(tex.width());
-        image_size.setHeight(tex.height());
+        image_ = im.convertToFormat(QImage::Format_RGBA8888);
+        image_size.setWidth(image_.width());
+        image_size.setHeight(image_.height());
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width(), tex.height(), 0, GL_RGBA,
-            GL_UNSIGNED_BYTE, tex.bits());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_.width(), image_.height(), 0, GL_RGBA,
+            GL_UNSIGNED_BYTE, image_.bits());
 
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 
         glDisable(GL_TEXTURE_2D);
 
-        return tex;
+        return image_;
     }
 
     void setScale(float scale)

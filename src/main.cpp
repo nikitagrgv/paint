@@ -214,22 +214,45 @@ public:
         last_line_pos_ = image_pos;
     }
 
-    void wheelEvent(QWheelEvent *event) override
+    void zoom_to_position(int dir, const QPointF &position)
     {
         constexpr float MULTIPLIER = 1.1f;
         constexpr float DEMULTIPLIER = 1.0f / MULTIPLIER;
 
-        const float multiplier = event->angleDelta().y() > 0 ? MULTIPLIER : DEMULTIPLIER;
+        const float multiplier = dir > 0 ? MULTIPLIER : DEMULTIPLIER;
 
         image_scale_ *= multiplier;
 
-        const QPointF mpos = event->position();
-        const QPointF a = mpos - base_point_;
+        const QPointF a = position - base_point_;
         const QPointF b = a * multiplier;
         const QPointF delta = a - b;
         base_point_ = base_point_ + delta;
 
         emit scaleChanged(image_scale_);
+    }
+
+    void wheelEvent(QWheelEvent *event) override
+    {
+        if (event->modifiers() == Qt::ControlModifier)
+        {
+            zoom_to_position(event->angleDelta().y(), event->position());
+        }
+
+
+        const bool scroll_y = event->modifiers() == Qt::NoModifier;
+        const bool scroll_x = event->modifiers() == Qt::ShiftModifier;
+        if (scroll_x || scroll_y)
+        {
+            const double delta = event->angleDelta().y() * 0.3;
+            if (scroll_x)
+            {
+                base_point_.setX(base_point_.x() - delta);
+            }
+            else
+            {
+                base_point_.setY(base_point_.y() + delta);
+            }
+        }
     }
 
     void init() { loadTexture2(image_path, backgroundimage); }

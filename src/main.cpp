@@ -125,8 +125,15 @@ public:
 
         const float prev_scale = image_scale_;
         image_scale_ *= multiplier;
-        base_point_.setX(base_point_.x() * multiplier);
-        base_point_.setY(base_point_.y() * multiplier);
+
+        const QPointF mpos = event->position();
+        const QPointF a = mpos - base_point_;
+        const QPointF b = a * multiplier;
+        const QPointF delta = a - b;
+        base_point_ = base_point_ + delta;
+
+        // base_point_.setX(base_point_.x() * multiplier);
+        // base_point_.setY(base_point_.y() * multiplier);
 
         emit scaleChanged(image_scale_);
     }

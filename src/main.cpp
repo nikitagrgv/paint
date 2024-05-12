@@ -90,8 +90,8 @@ public:
         }
         else if (apEvent->button() == Qt::LeftButton)
         {
-            last_draw_image_pos_ = toImagePos(apEvent->pos());
-            draw_point(last_draw_image_pos_);
+            last_line_pos_ = toImagePos(apEvent->pos());
+            draw_point(last_line_pos_);
         }
     }
 
@@ -106,7 +106,7 @@ public:
         else if (event->buttons() & Qt::LeftButton)
         {
             const QPoint image_pos = toImagePos(event->pos());
-            draw_point(image_pos);
+            draw_line(image_pos);
         }
     }
 
@@ -118,7 +118,12 @@ public:
         glBindTexture(GL_TEXTURE_2D, backgroundimage);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_.width(), image_.height(), 0, GL_RGBA,
             GL_UNSIGNED_BYTE, image_.bits());
-        last_draw_image_pos_ = image_pos;
+    }
+
+    void draw_line(const QPoint &image_pos)
+    {
+        draw_point(image_pos);
+        last_line_pos_ = image_pos;
     }
 
     void wheelEvent(QWheelEvent *event) override
@@ -198,7 +203,7 @@ private:
 
     GLuint backgroundimage{};
 
-    QPoint last_draw_image_pos_{};
+    QPoint last_line_pos_{};
 
     QPointF base_point_{};
     QTimer mpTimer{};

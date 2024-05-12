@@ -33,11 +33,15 @@ public:
     glView(QWidget *parent)
         : QOpenGLWidget(parent)
     {
+        setMouseTracking(true);
+
         image_ = QImage(200, 200, QImage::Format_RGBA8888);
         image_.fill(Qt::white);
 
         connect(&mpTimer, &QTimer::timeout, this, QOverload<>::of(&glView::repaint));
         mpTimer.start(33);
+
+        update_cur_mouse_image_pos();
     }
 
     void initializeGL() override
@@ -45,6 +49,8 @@ public:
         gl_intialized_ = true;
         glMatrixMode(GL_PROJECTION);
         create_gl_image();
+
+        update_cur_mouse_image_pos();
     }
 
     void resizeGL(int w, int h) override
@@ -54,6 +60,8 @@ public:
         glLoadIdentity();
         glOrtho(0, w, h, 0, 0, 1);
         glViewport(0, 0, w, h);
+
+        update_cur_mouse_image_pos();
     }
 
     void paintGL() override
@@ -90,6 +98,7 @@ public:
 
     void mousePressEvent(QMouseEvent *apEvent) override
     {
+        update_cur_mouse_image_pos();
         if (apEvent->button() == Qt::MiddleButton)
         {
             last_middle_mouse_pos_ = apEvent->pos();
@@ -104,6 +113,8 @@ public:
 
     void mouseReleaseEvent(QMouseEvent *event) override
     {
+        update_cur_mouse_image_pos();
+
         class PaintCommand : public QUndoCommand
         {
         public:
@@ -156,6 +167,8 @@ public:
             const QPoint image_pos = toImagePos(event->pos());
             draw_line(image_pos, QColor(255, 255, 255, 255));
         }
+
+        update_cur_mouse_image_pos();
     }
 
     void load_image_to_gl()
@@ -237,6 +250,8 @@ public:
         base_point_ = base_point_ + delta;
 
         emit scaleChanged(image_scale_);
+
+        update_cur_mouse_image_pos();
     }
 
     void wheelEvent(QWheelEvent *event) override
@@ -245,7 +260,6 @@ public:
         {
             zoom_to_position(event->angleDelta().y(), event->position());
         }
-
 
         const bool scroll_y = event->modifiers() == Qt::NoModifier;
         const bool scroll_x = event->modifiers() == Qt::ShiftModifier;
@@ -261,6 +275,7 @@ public:
                 base_point_.setY(base_point_.y() + delta);
             }
         }
+        update_cur_mouse_image_pos();
     }
 
     QImage create_gl_image()
@@ -294,8 +309,22 @@ public:
         return QPoint((point_f.x()), (point_f.y()));
     }
 
+    QPoint getMouseImagePosition() const { return cur_mouse_image_pos_; }
+
 signals:
     void scaleChanged(float scale);
+    void mouseImagePositionChanged();
+
+private:
+    void update_cur_mouse_image_pos()
+    {
+        const QPoint pos = toImagePos(mapFromGlobal(QCursor::pos()));
+        if (cur_mouse_image_pos_ != pos)
+        {
+            cur_mouse_image_pos_ = pos;
+            emit mouseImagePositionChanged();
+        }
+    }
 
 private:
     QSize size_{};
@@ -316,6 +345,8 @@ private:
     QImage prev_image_;
 
     bool gl_intialized_{false};
+
+    QPoint cur_mouse_image_pos_{};
 };
 
 class MainWindow : public QMainWindow
@@ -355,8 +386,29 @@ public:
 
         view_ = new glView(this);
         layout->addWidget(view_);
+
+        {
+            auto info_widgets = new QWidget(this);
+            auto info_layout = new QHBoxLayout(info_widgets);
+            layout->addWidget(info_widgets);
+
+            auto pos_label = new QLabel("Mouse: ", this);
+            info_layout->addWidget(pos_label);
+
+            pos_x_label_ = new QLabel(this);
+            info_layout->addWidget(pos_x_label_);
+
+            pos_y_label_ = new QLabel(this);
+            info_layout->addWidget(pos_y_label_);
+
+            info_layout->addSpacerItem(
+                new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+        }
+
+
         layout->setStretch(0, 0);
         layout->setStretch(1, 1);
+        layout->setStretch(2, 0);
 
         setCentralWidget(central_widget);
 
@@ -394,6 +446,12 @@ public:
             scale_spinbox_->setValue(scale);
             scale_slider_->setValue(scale * 10);
             block_scale_change_ = false;
+        });
+
+        connect(view_, &glView::mouseImagePositionChanged, [this] {
+            QPoint position = view_->getMouseImagePosition();
+            pos_x_label_->setText(QString::number(position.x()));
+            pos_y_label_->setText(QString::number(position.y()));
         });
     }
 
@@ -466,6 +524,9 @@ private:
     QDoubleSpinBox *scale_spinbox_;
     QSlider *scale_slider_;
     glView *view_;
+
+    QLabel *pos_x_label_;
+    QLabel *pos_y_label_;
 };
 
 int main(int argc, char *argv[])

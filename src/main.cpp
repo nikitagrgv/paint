@@ -123,7 +123,6 @@ public:
             ? MULTIPLIER
             : DEMULTIPLIER;
 
-        const float prev_scale = image_scale_;
         image_scale_ *= multiplier;
 
         const QPointF mpos = event->position();
@@ -131,9 +130,6 @@ public:
         const QPointF b = a * multiplier;
         const QPointF delta = a - b;
         base_point_ = base_point_ + delta;
-
-        // base_point_.setX(base_point_.x() * multiplier);
-        // base_point_.setY(base_point_.y() * multiplier);
 
         emit scaleChanged(image_scale_);
     }

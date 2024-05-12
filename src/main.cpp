@@ -34,6 +34,7 @@ public:
         : QOpenGLWidget(parent)
     {
         setMouseTracking(true);
+        setFocusPolicy(Qt::WheelFocus);
 
         image_ = QImage(200, 200, QImage::Format_RGBA8888);
         image_.fill(Qt::white);

@@ -374,9 +374,11 @@ public:
             info_layout->addWidget(pos_label);
 
             pos_x_label_ = new QLabel(this);
+            pos_x_label_->setFixedWidth(40);
             info_layout->addWidget(pos_x_label_);
 
             pos_y_label_ = new QLabel(this);
+            pos_y_label_->setFixedWidth(40);
             info_layout->addWidget(pos_y_label_);
 
             info_layout->addSpacerItem(
@@ -391,6 +393,7 @@ public:
             scale_layout->addWidget(scale_label);
 
             scale_spinbox_ = new QDoubleSpinBox(this);
+            scale_spinbox_->setFixedWidth(70);
             scale_layout->addWidget(scale_spinbox_);
             scale_spinbox_->setMinimum(0.1);
             scale_spinbox_->setMaximum(10.0);

@@ -84,24 +84,7 @@ public:
 
     void mousePressEvent(QMouseEvent *apEvent) override
     {
-        const auto toImagePos = [this](const QPointF screen_pos) {
-            QPointF point_f = (screen_pos - base_point_) / image_scale_;
-            return QPoint((point_f.x()), (point_f.y()));
-        };
-
-        if (apEvent->button() == Qt::RightButton)
-        {
-            glBindTexture(GL_TEXTURE_2D, backgroundimage);
-            QImage im(image_path);
-            QImage tex = im.convertToFormat(QImage::Format_RGBA8888);
-            tex.setPixel(toImagePos(apEvent->pos()), QColor(255, 255, 255, 255).rgba());
-            image_size.setWidth(tex.width());
-            image_size.setHeight(tex.height());
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width(), tex.height(), 0, GL_RGBA,
-                GL_UNSIGNED_BYTE, tex.bits());
-            // mPosition = apEvent->pos();
-        }
-        else if (apEvent->button() == Qt::MiddleButton)
+        if (apEvent->button() == Qt::MiddleButton)
         {
             last_middle_mouse_pos_ = apEvent->pos();
         }
@@ -109,15 +92,24 @@ public:
 
     void mouseMoveEvent(QMouseEvent *event) override
     {
-        std::cout << " buttons = " << event->buttons() << std::endl;
-        std::cout << " fff = " << (event->buttons() & Qt::MiddleButton) << std::endl;
-        if ((event->buttons() & Qt::MiddleButton) == 0)
+        if ((event->buttons() & Qt::MiddleButton))
         {
-            return;
+            const QPointF delta = event->pos() - last_middle_mouse_pos_;
+            last_middle_mouse_pos_ = event->pos();
+            base_point_ = base_point_ + delta;
         }
-        const QPointF delta = event->pos() - last_middle_mouse_pos_;
-        last_middle_mouse_pos_ = event->pos();
-        base_point_ = base_point_ + delta;
+        else if (event->buttons() & Qt::LeftButton)
+        {
+            QImage im(image_path);
+            QImage tex = im.convertToFormat(QImage::Format_RGBA8888);
+            tex.setPixel(toImagePos(event->pos()), QColor(255, 255, 255, 255).rgba());
+            image_size.setWidth(tex.width());
+            image_size.setHeight(tex.height());
+            glBindTexture(GL_TEXTURE_2D, backgroundimage);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width(), tex.height(), 0, GL_RGBA,
+                GL_UNSIGNED_BYTE, tex.bits());
+            // mPosition = apEvent->pos();
+        }
     }
 
     void wheelEvent(QWheelEvent *event) override
@@ -177,6 +169,13 @@ public:
         image_scale_ = scale;
     }
 
+    QPoint toImagePos(const QPointF screen_pos) const
+    {
+        QPointF point_f = (screen_pos - base_point_) / image_scale_;
+        return QPoint((point_f.x()), (point_f.y()));
+    }
+
+
 signals:
     void scaleChanged(float scale);
 
@@ -193,6 +192,7 @@ private:
     QPointF base_point_{};
     QTimer mpTimer{};
     const char *image_path = "C:\\Users\\nekita\\CLionProjects\\paint\\data\\spam.png";
+    QImage image_;
 };
 
 class MainWindow : public QMainWindow

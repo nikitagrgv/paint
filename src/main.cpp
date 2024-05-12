@@ -138,21 +138,34 @@ public:
         const double y0f = y0;
         const double y1f = y1;
 
+        const auto get_k = [](double x0, double x1, double y0, double y1) {
+            return (y1 - y0) / (x1 - x0);
+        };
+        const auto get_b = [](double x0, double x1, double y0, double y1) {
+            return (x0 * y1 - x1 * y0) / (x0 - x1);
+        };
+
         if (x_major)
         {
-            const double k = (y1f - y0f) / (x1f - x0f);
-            const double b = (x0f * y1f - x1f * y0f) / (x0f - x1f);
+            const double k = get_k(x0f, x1f, y0f, y1f);
+            const double b = get_b(x0f, x1f, y0f, y1f);
             for (int x = x0; x <= x1; x++)
             {
                 const double y = k * x + b;
                 draw_point(QPoint(x, round(y)), color);
             }
         }
+        else
+        {
+            const double k = get_k(y0f, y1f, x0f, x1f);
+            const double b = get_b(y0f, y1f, x0f, x1f);
+            for (int y = y0; y <= y1; y++)
+            {
+                const double x = k * y + b;
+                draw_point(QPoint(round(x), y), color);
+            }
+        }
 
-        draw_point(image_pos, Qt::red);
-        draw_point(last_line_pos_, Qt::red);
-
-        // draw_point(QPoint(i, image_pos.y()));
         last_line_pos_ = image_pos;
     }
 

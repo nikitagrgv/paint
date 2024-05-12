@@ -113,9 +113,9 @@ public:
                 , prev_image_(std::move(prev_image))
             {}
 
-            void undo() override { view_->image_ = prev_image_; }
+            void undo() override { view_->setImage(prev_image_); }
 
-            void redo() override { view_->image_ = new_image_; }
+            void redo() override { view_->setImage(new_image_); }
 
         private:
             QPointer<glView> view_;
@@ -127,6 +127,12 @@ public:
         {
             globals.undo_stack->push(new PaintCommand(this, image_, std::move(prev_image_)));
         }
+    }
+
+    void setImage(QImage image)
+    {
+        image_ = std::move(image);
+        load_image_to_gl();
     }
 
     void mouseMoveEvent(QMouseEvent *event) override

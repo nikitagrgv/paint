@@ -91,7 +91,7 @@ public:
         else if (apEvent->button() == Qt::LeftButton)
         {
             last_line_pos_ = toImagePos(apEvent->pos());
-            draw_point(last_line_pos_);
+            draw_point(last_line_pos_, QColor(255, 255, 255, 255));
         }
     }
 
@@ -106,13 +106,13 @@ public:
         else if (event->buttons() & Qt::LeftButton)
         {
             const QPoint image_pos = toImagePos(event->pos());
-            draw_line(image_pos);
+            draw_line(image_pos, QColor(255, 255, 255, 255));
         }
     }
 
-    void draw_point(const QPoint &image_pos)
+    void draw_point(const QPoint &image_pos, const QColor &color)
     {
-        image_.setPixel(image_pos, QColor(255, 255, 255, 255).rgba());
+        image_.setPixel(image_pos, color.rgba());
         image_size.setWidth(image_.width());
         image_size.setHeight(image_.height());
         glBindTexture(GL_TEXTURE_2D, backgroundimage);
@@ -120,9 +120,39 @@ public:
             GL_UNSIGNED_BYTE, image_.bits());
     }
 
-    void draw_line(const QPoint &image_pos)
+    void draw_line(const QPoint &image_pos, const QColor &color)
     {
-        draw_point(image_pos);
+        int x0 = last_line_pos_.x();
+        int x1 = image_pos.x();
+        int y0 = last_line_pos_.y();
+        int y1 = image_pos.y();
+        const bool x_major = abs(x1 - x0) > abs(y1 - y0);
+        if ((x_major && x0 > x1) || (!x_major && y0 > y1))
+        {
+            std::swap(x0, x1);
+            std::swap(y0, y1);
+        }
+
+        const double x0f = x0;
+        const double x1f = x1;
+        const double y0f = y0;
+        const double y1f = y1;
+
+        if (x_major)
+        {
+            const double k = (y1f - y0f) / (x1f - x0f);
+            const double b = (x0f * y1f - x1f * y0f) / (x0f - x1f);
+            for (int x = x0; x <= x1; x++)
+            {
+                const double y = k * x + b;
+                draw_point(QPoint(x, round(y)), color);
+            }
+        }
+
+        draw_point(image_pos, Qt::red);
+        draw_point(last_line_pos_, Qt::red);
+
+        // draw_point(QPoint(i, image_pos.y()));
         last_line_pos_ = image_pos;
     }
 

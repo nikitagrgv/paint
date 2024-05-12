@@ -13,7 +13,7 @@
 #include <QSlider>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
-
+#include <QMenuBar>
 #include <QMouseEvent>
 #include <QTimer>
 #include <iostream>
@@ -326,6 +326,34 @@ public:
             scale_slider_->setValue(scale * 10);
             block_scale_change_ = false;
         });
+    }
+
+private:
+    void init_menu()
+    {
+        // file
+        {
+            QMenu *file_menu = menuBar()->addMenu(tr("&File"));
+
+            QAction *new_action = new QAction("New");
+            file_menu->addAction(new_action);
+
+            QAction *open_action = new QAction("Open");
+            file_menu->addAction(open_action);
+
+            QAction *save_action = new QAction("Save");
+            file_menu->addAction(save_action);
+        }
+        // edit
+        {
+            QMenu *edit_menu = menuBar()->addMenu(tr("&Edit"));
+
+            QAction *undo_action = new QAction("Undo");
+            edit_menu->addAction(undo_action);
+
+            QAction *redo_action = new QAction("Redo");
+            edit_menu->addAction(redo_action);
+        }
     }
 
 private:

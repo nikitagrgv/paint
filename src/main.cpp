@@ -91,6 +91,7 @@ public:
         else if (apEvent->button() == Qt::LeftButton)
         {
             last_draw_image_pos_ = toImagePos(apEvent->pos());
+            draw_point(last_draw_image_pos_);
         }
     }
 
@@ -105,14 +106,19 @@ public:
         else if (event->buttons() & Qt::LeftButton)
         {
             const QPoint image_pos = toImagePos(event->pos());
-            image_.setPixel(image_pos, QColor(255, 255, 255, 255).rgba());
-            image_size.setWidth(image_.width());
-            image_size.setHeight(image_.height());
-            glBindTexture(GL_TEXTURE_2D, backgroundimage);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_.width(), image_.height(), 0, GL_RGBA,
-                GL_UNSIGNED_BYTE, image_.bits());
-            last_draw_image_pos_ = image_pos;
+            draw_point(image_pos);
         }
+    }
+
+    void draw_point(const QPoint &image_pos)
+    {
+        image_.setPixel(image_pos, QColor(255, 255, 255, 255).rgba());
+        image_size.setWidth(image_.width());
+        image_size.setHeight(image_.height());
+        glBindTexture(GL_TEXTURE_2D, backgroundimage);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_.width(), image_.height(), 0, GL_RGBA,
+            GL_UNSIGNED_BYTE, image_.bits());
+        last_draw_image_pos_ = image_pos;
     }
 
     void wheelEvent(QWheelEvent *event) override
@@ -192,7 +198,7 @@ private:
 
     GLuint backgroundimage{};
 
-    QPointF last_draw_image_pos_{};
+    QPoint last_draw_image_pos_{};
 
     QPointF base_point_{};
     QTimer mpTimer{};
@@ -286,7 +292,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     MainWindow win;
-    win.resize(640, 480);
+    win.resize(1024, 628);
     win.show();
     // win.sho\wFullScreen();
 

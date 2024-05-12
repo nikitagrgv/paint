@@ -58,7 +58,7 @@ public:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-        QPointF point = (mPosition);
+        QPointF point = (base_point_);
         float a = point.x();
         float b = point.y();
         float w = image_size.width() * image_scale_;
@@ -86,7 +86,7 @@ public:
     {
         if (apEvent->button() == Qt::LeftButton)
         {
-            mPosition = apEvent->pos();
+            base_point_ = apEvent->pos();
         }
         else if (apEvent->button() == Qt::RightButton)
         {
@@ -115,7 +115,7 @@ public:
         }
         const QPointF delta = event->pos() - last_middle_mouse_pos_;
         last_middle_mouse_pos_ = event->pos();
-        mPosition = mPosition + delta;
+        base_point_ = base_point_ + delta;
     }
 
     void init()
@@ -168,7 +168,7 @@ private:
 
     GLuint backgroundimage{};
 
-    QPointF mPosition{};
+    QPointF base_point_{};
     QTimer mpTimer{};
     const char *image_path = "C:\\Users\\nekita\\CLionProjects\\paint\\data\\spam.png";
 };
@@ -193,24 +193,11 @@ public:
                 scale_spinbox_->setMaximum(10.0);
                 scale_spinbox_->setValue(1.0);
 
-                connect(scale_spinbox_, &QDoubleSpinBox::valueChanged,
-                    [this](double value) {
-                        QSignalBlocker blocker(scale_slider_);
-                        scale_slider_->setValue(value * 10);
-                        view_->setScale(value);
-                    });
-
                 scale_slider_ = new QSlider(Qt::Horizontal, this);
                 scale_layout->addWidget(scale_slider_);
                 scale_slider_->setMinimum(1);
                 scale_slider_->setMaximum(100);
                 scale_slider_->setValue(10);
-
-                connect(scale_slider_, &QSlider::valueChanged, [this](int value) {
-                    QSignalBlocker blocker(scale_spinbox_);
-                    scale_spinbox_->setValue(value / 10.0);
-                    view_->setScale(value / 10.0);
-                });
 
                 form_layout->addRow(new QLabel("Scale:"), scale_widgets);
             }
@@ -223,9 +210,45 @@ public:
 
 
         setCentralWidget(central_widget);
+
+        ////////////
+        connect(scale_spinbox_, &QDoubleSpinBox::valueChanged,
+            [this](double value) {
+                if (block_scale_change_)
+                {
+                    return;
+                }
+                block_scale_change_ = true;
+                scale_slider_->setValue(value * 10);
+                view_->setScale(value);
+                block_scale_change_ = false;
+            });
+
+        connect(scale_slider_, &QSlider::valueChanged, [this](int value) {
+            if (block_scale_change_)
+            {
+                return;
+            }
+            block_scale_change_ = true;
+            scale_spinbox_->setValue(value / 10.0);
+            view_->setScale(value / 10.0);
+            block_scale_change_ = false;
+        });
+
+        connect(view_, &glView::scaleChanged, [this](float scale) {
+            if (!block_scale_change_)
+            {
+                return;
+            }
+            block_scale_change_ = true;
+            scale_spinbox_->setValue(scale);
+            scale_slider_->setValue(scale * 10);
+            block_scale_change_ = false;
+        });
     }
 
 private:
+    bool block_scale_change_{false};
     QDoubleSpinBox *scale_spinbox_;
     QSlider *scale_slider_;
     glView *view_;

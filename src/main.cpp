@@ -1,24 +1,24 @@
 #include <QApplication>
-#include <QPushButton>
-#include <QPen>
-#include <QPainter>
-#include <QEvent>
-#include <QPaintEvent>
-#include <QTimer>
-#include <QOpenGLWindow>
-#include <QLabel>
-#include <QGridLayout>
-#include <QtOpenGLWidgets/QOpenGLWidget>
-#include <QMainWindow>
-#include <QSlider>
 #include <QDoubleSpinBox>
+#include <QEvent>
 #include <QFormLayout>
+#include <QGridLayout>
+#include <QLabel>
+#include <QMainWindow>
 #include <QMenuBar>
 #include <QMouseEvent>
+#include <QOpenGLWindow>
+#include <QPaintEvent>
+#include <QPainter>
+#include <QPen>
+#include <QPointer>
+#include <QPushButton>
+#include <QSlider>
 #include <QTimer>
-#include <iostream>
-
 #include <QUndoStack>
+
+#include <QtOpenGLWidgets/QOpenGLWidget>
+#include <iostream>
 
 struct Globals
 {
@@ -96,8 +96,36 @@ public:
         }
         else if (apEvent->button() == Qt::LeftButton)
         {
+            prev_image_ = image_;
             last_line_pos_ = toImagePos(apEvent->pos());
             draw_point(last_line_pos_, QColor(255, 255, 255, 255));
+        }
+    }
+
+    void mouseReleaseEvent(QMouseEvent *event) override
+    {
+        class PaintCommand : public QUndoCommand
+        {
+        public:
+            PaintCommand(glView *view, QImage new_image, QImage prev_image)
+                : view_(view)
+                , new_image_(std::move(new_image))
+                , prev_image_(std::move(prev_image))
+            {}
+
+            void undo() override { view_->image_ = prev_image_; }
+
+            void redo() override { view_->image_ = new_image_; }
+
+        private:
+            QPointer<glView> view_;
+            QImage new_image_;
+            QImage prev_image_;
+        };
+
+        if (event->button() == Qt::LeftButton)
+        {
+            globals.undo_stack->push(new PaintCommand(this, image_, std::move(prev_image_)));
         }
     }
 
@@ -116,14 +144,19 @@ public:
         }
     }
 
+    void load_image_to_gl()
+    {
+        glBindTexture(GL_TEXTURE_2D, backgroundimage);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_.width(), image_.height(), 0, GL_RGBA,
+            GL_UNSIGNED_BYTE, image_.bits());
+    }
+
     void draw_point(const QPoint &image_pos, const QColor &color)
     {
         image_.setPixel(image_pos, color.rgba());
         image_size.setWidth(image_.width());
         image_size.setHeight(image_.height());
-        glBindTexture(GL_TEXTURE_2D, backgroundimage);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_.width(), image_.height(), 0, GL_RGBA,
-            GL_UNSIGNED_BYTE, image_.bits());
+        load_image_to_gl();
     }
 
     void draw_line(const QPoint &image_pos, const QColor &color)
@@ -180,9 +213,7 @@ public:
         constexpr float MULTIPLIER = 1.1f;
         constexpr float DEMULTIPLIER = 1.0f / MULTIPLIER;
 
-        const float multiplier = event->angleDelta().y() > 0
-            ? MULTIPLIER
-            : DEMULTIPLIER;
+        const float multiplier = event->angleDelta().y() > 0 ? MULTIPLIER : DEMULTIPLIER;
 
         image_scale_ *= multiplier;
 
@@ -195,10 +226,7 @@ public:
         emit scaleChanged(image_scale_);
     }
 
-    void init()
-    {
-        loadTexture2(image_path, backgroundimage);
-    }
+    void init() { loadTexture2(image_path, backgroundimage); }
 
     QImage loadTexture2(const char *filename, GLuint &textureID)
     {
@@ -216,21 +244,17 @@ public:
         image_size.setWidth(image_.width());
         image_size.setHeight(image_.height());
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_.width(), image_.height(), 0, GL_RGBA,
-            GL_UNSIGNED_BYTE, image_.bits());
+        load_image_to_gl();
 
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
         glDisable(GL_TEXTURE_2D);
 
         return image_;
     }
 
-    void setScale(float scale)
-    {
-        image_scale_ = scale;
-    }
+    void setScale(float scale) { image_scale_ = scale; }
 
     QPoint toImagePos(const QPointF screen_pos) const
     {
@@ -258,6 +282,8 @@ private:
     QTimer mpTimer{};
     const char *image_path = "C:\\Users\\nekita\\CLionProjects\\paint\\data\\spam.png";
     QImage image_;
+
+    QImage prev_image_;
 };
 
 class MainWindow : public QMainWindow
@@ -269,10 +295,12 @@ public:
 
         QWidget *central_widget = new QWidget(this);
         auto layout = new QVBoxLayout(central_widget);
-        layout->setContentsMargins(0, 0, 0, 0); {
+        layout->setContentsMargins(0, 0, 0, 0);
+        {
             auto form_widget = new QWidget(this);
             auto form_layout = new QFormLayout(form_widget);
-            layout->addWidget(form_widget); {
+            layout->addWidget(form_widget);
+            {
                 auto scale_widgets = new QWidget(this);
                 auto scale_layout = new QHBoxLayout(scale_widgets);
 
@@ -303,17 +331,16 @@ public:
         init_menu();
 
         ////////////
-        connect(scale_spinbox_, &QDoubleSpinBox::valueChanged,
-            [this](double value) {
-                if (block_scale_change_)
-                {
-                    return;
-                }
-                block_scale_change_ = true;
-                scale_slider_->setValue(value * 10);
-                view_->setScale(value);
-                block_scale_change_ = false;
-            });
+        connect(scale_spinbox_, &QDoubleSpinBox::valueChanged, [this](double value) {
+            if (block_scale_change_)
+            {
+                return;
+            }
+            block_scale_change_ = true;
+            scale_slider_->setValue(value * 10);
+            view_->setScale(value);
+            block_scale_change_ = false;
+        });
 
         connect(scale_slider_, &QSlider::valueChanged, [this](int value) {
             if (block_scale_change_)
@@ -338,10 +365,7 @@ public:
         });
     }
 
-    ~MainWindow() override
-    {
-        delete globals.undo_stack;
-    }
+    ~MainWindow() override { delete globals.undo_stack; }
 
 private:
     void init_menu()
@@ -363,10 +387,10 @@ private:
         {
             QMenu *edit_menu = menuBar()->addMenu(tr("&Edit"));
 
-            auto undo_action = new QAction("Undo", nullptr);
+            auto undo_action = globals.undo_stack->createUndoAction(this, "Undo");
             edit_menu->addAction(undo_action);
 
-            auto redo_action = new QAction("Redo", nullptr);
+            auto redo_action = globals.undo_stack->createRedoAction(this, "Redo");
             edit_menu->addAction(redo_action);
         }
     }

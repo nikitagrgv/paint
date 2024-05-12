@@ -116,14 +116,18 @@ public:
 
     void wheelEvent(QWheelEvent *event) override
     {
-        if (event->angleDelta().y() > 0)
-        {
-            image_scale_ *= 1.1f;
-        }
-        else
-        {
-            image_scale_ *= 1.0f / 1.1f;
-        }
+        constexpr float MULTIPLIER = 1.1f;
+        constexpr float DEMULTIPLIER = 1.0f / MULTIPLIER;
+
+        const float multiplier = event->angleDelta().y() > 0
+            ? MULTIPLIER
+            : DEMULTIPLIER;
+
+        const float prev_scale = image_scale_;
+        image_scale_ *= multiplier;
+        base_point_.setX(base_point_.x() * multiplier);
+        base_point_.setY(base_point_.y() * multiplier);
+
         emit scaleChanged(image_scale_);
     }
 
